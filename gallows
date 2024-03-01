@@ -1,0 +1,101 @@
+import telebot
+import random
+import datetime
+
+TOKEN = "TOKEN"
+
+def log(m):
+	f = open("log.txt", "a" )
+	now = datetime.datetime.now()
+	f.write(m+now.strftime('%H:%M:%S on %A, %B the %dth, %Y'+ "\n"+ "\n"))
+	f.close
+
+bot = telebot.TeleBot(TOKEN)
+
+@bot.message_handler()
+def send_welcome(message):
+	if (message.text=="/start") or (message.text=="help"):
+		log(str(message.from_user.id) + ": " + message.text)
+		bot.send_message(message.from_user.id, "If u want to play /game")
+	elif (message.text=="/game"):
+		log(str(message.from_user.id) + ": " + message.text)
+		game(message)
+	else:
+		bot.send_mesge(mesge.from_user.id, "I don't undestand u")
+
+@bot.message_handler(commands=['game'])
+def game(message):
+	try:
+		lives = 10
+
+		word_wariants = ["frog", "lollipop","anastasiya","yana", "beer", "dog", "cat", "hamster","hymn", "amnesia", "moon", "coffin", "gravity", "curse", "grief", "faith", "atmosphere", "heart", "knife", "cloud", "oblivion", "sanctuary", "moustache", "trouble", "chance", "butterfly", "witch", "storm", "knight", "resurrection", "grave", "present", "future", "past", "wind", "misery", "nightmare", "eye", "blood", "pain", "memory", "demon", "ghost", "parasite", "end", "soldier", "temptation", "song", "void", "enlightment", "voice", "wreckage", "glass", "shadow", "cocaine", "remedy", "world", "silence", "circus", "doomsday", "tongue", "shark", "heaven", "human", "fight", "smile", "war", "regret", "enemy", "mayday", "revolution"]
+
+		words_right = random.choice(word_wariants)
+
+		word_in_g = "_" * len(words_right)
+
+		sendit = "Lives amount:" + str(lives) + ". \nWord: " + word_in_g
+		log("bot: " + sendit )
+		msg = bot.send_message(message.from_user.id, sendit)
+		bot.register_next_step_handler(msg, ggg, lives, word_in_g, words_right)
+	except:
+		log("bot: " + "Please write /game" )
+		msg44 = bot.send_message(message.from_user.id, "Please write /game")
+		bot.register_next_step_handler(msg44, game, lives, word_in_g, words_right)
+
+@bot.message_handler()
+def ggg(message, lives, word_in_g, words_right):
+	try:
+		if (len(message.text) == 1) and (message.text.islower()):
+			letter = message.text
+
+			log(str(message.from_user.id) + ": " + message.text)
+
+			ird = 0
+
+			if letter in words_right:
+				ird = 1
+
+				log("bot: " + "You are right" )
+
+				bot.send_message(message.from_user.id, "You are right")
+				index = -1
+				while word_in_g.count(letter) != words_right.count(letter):
+					index = words_right.find(letter, index + 1)
+					word_in_g = word_in_g[:index:] + letter + word_in_g[(index + 1):]
+				msg1 = bot.send_message(message.from_user.id, word_in_g)
+			else:
+				lives -= 1
+				ird = 2
+				kkk = "Try one more time\nLives: " + str(lives)
+
+				log("bot: " + kkk )
+
+				msg2 = bot.send_message(message.from_user.id, kkk )
+		else:
+			ird = 3
+			log(str(message.from_user.id) + ": " + message.text)
+			log("bot: " + "Please write only one letter in lowercase (1)")
+
+			msg3 = bot.send_message(message.from_user.id, "Please write only one letter in lowercase (1)")
+		if (lives > 0) and ("_" in word_in_g):
+			if ird == 1:
+				msgr = msg1
+			elif ird == 2:
+				msgr = msg2
+			elif ird == 3:
+				msgr = msg3
+			bot.register_next_step_handler(msgr, ggg, lives, word_in_g, words_right)
+		elif (lives > 0):
+			log("bot: " +  "You win! You can start new game /game\n")
+			bot.send_message(message.from_user.id, "You win! You can start new game /game\n")
+		else:
+			lll = "You lose:( You can start new game /game\nWord: " + words_right
+			log("bot: " + lll)
+			bot.send_message(message.from_user.id, lll )
+	except:
+		log("bot: " + "Please write only one letter in lowercase (2)")
+		msg44 = bot.send_message(message.from_user.id, "Please write only one letter in lowercase (2)")
+		bot.register_next_step_handler(msg44, ggg, lives, word_in_g, words_right)
+
+bot.polling()
